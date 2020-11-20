@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import Joi from 'joi';
+import Joi from 'joi'; // export= 방시으로 되어 있어서 esModuleInterop를 true로 켜줌
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
