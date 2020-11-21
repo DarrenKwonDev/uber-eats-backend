@@ -3,9 +3,8 @@ import Joi from 'joi'; // export= 방식으로 되어 있어서 esModuleInterop�
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RestaurantsModule } from './restaurants/restaurants.module';
-import { Restaurant } from './restaurants/entities/restaurant.entity';
 import { join } from 'path';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -31,7 +30,7 @@ import { join } from 'path';
       database: process.env.DB_DATABASE,
       synchronize: process.env.NODE_ENV === 'prod' ? false : true, // Setting synchronize: true shouldn't be used in production - otherwise you can lose production data.
       logging: true,
-      entities: [Restaurant],
+      // entities: [],
       // autoLoadEntities: true, // 자동으로 entity 넣어주기
     }),
     GraphQLModule.forRoot({
@@ -39,7 +38,7 @@ import { join } from 'path';
       debug: true,
       playground: true,
     }),
-    RestaurantsModule,
+    UsersModule,
   ],
   controllers: [],
   providers: [],
