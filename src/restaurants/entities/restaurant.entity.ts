@@ -1,8 +1,8 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { IsString, Length } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-// Active Record 방법으로 쓰려면 extends BaseEntity 해야 함.
-
+@InputType({ isAbstract: true })
 @ObjectType() // nest
 @Entity() // typeORM
 export class Restaurant {
@@ -12,6 +12,8 @@ export class Restaurant {
 
   @Field(() => String) // nest(gql)
   @Column() // typeORM
+  @IsString()
+  @Length(5, 10)
   name: string; // nest(typescript)
 
   @Field(() => Boolean)
@@ -20,13 +22,16 @@ export class Restaurant {
 
   @Field(() => String)
   @Column()
+  @IsString()
   address: string;
 
   @Field(() => String)
   @Column()
+  @IsString()
   ownersName: string;
 
   @Field(() => String)
   @Column()
+  @IsString()
   categoryName: string;
 }
