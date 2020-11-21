@@ -2,7 +2,7 @@
 
 include [paddle payments](https://paddle.com/)
 
-## User Mode:
+## User Entity:
 
 - id  
 - createdAt  
