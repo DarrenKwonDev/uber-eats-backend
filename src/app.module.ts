@@ -32,6 +32,7 @@ import { join } from 'path';
       synchronize: process.env.NODE_ENV === 'prod' ? false : true, // Setting synchronize: true shouldn't be used in production - otherwise you can lose production data.
       logging: true,
       entities: [Restaurant],
+      // autoLoadEntities: true, // 자동으로 entity 넣어주기
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'), // set true if you want to use in memory gql
