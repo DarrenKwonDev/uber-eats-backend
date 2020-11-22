@@ -5,3 +5,13 @@
 type Query {
   hi: Boolean!
 }
+
+type Mutation {
+  createAccount(input: CreateAccountInput!): Boolean!
+}
+
+input CreateAccountInput {
+  email: String!
+  password: String!
+  role: String!
+}
