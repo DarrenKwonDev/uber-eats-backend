@@ -11,21 +11,21 @@ export class UsersService {
     private readonly users: Repository<User>,
   ) {}
 
-  // 무언가 문제가 발생하면 string을 반환, clean exit하면 undefined하고 return 값들은 resolver 단에서 처리하기로
-  async createAccount({ email, password, role }: CreateAccountInput): Promise<string | undefined> {
+  async createAccount({ email, password, role }: CreateAccountInput): Promise<{ ok: boolean; error?: string }> {
     try {
       // is it new user?
       const exists = await this.users.findOne({ email });
       if (exists) {
-        return 'There is a user with that email already';
+        return { ok: false, error: 'There is a user with that email already' };
       }
 
       // create user and save it
       await this.users.save(this.users.create({ email, password, role }));
+      return { ok: true };
 
       //TODO: hashing password!
     } catch (error) {
-      return `Can't create user error message : ${error.message}`;
+      return { ok: false, error: `Can't create user error message : ${error.message}` };
     }
   }
 }
