@@ -9,6 +9,7 @@ import { CommonModule } from './common/common.module';
 import { User } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleWare } from './jwt/jwt.middleware';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -42,10 +43,12 @@ import { JwtMiddleWare } from './jwt/jwt.middleware';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'), // set true if you want to use in memory gql
       debug: true,
       playground: true,
+      context: ({ req }) => ({ user: req['user'] }),
     }),
     UsersModule,
     CommonModule,
     JwtModule.forRoot({ privateKey: process.env.TOKEN_SECRET }),
+    AuthModule,
   ],
   controllers: [],
   providers: [],
@@ -54,7 +57,7 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(JwtMiddleWare).forRoutes({
       path: '/graphql',
-      method: RequestMethod.ALL,
+      method: RequestMethod.POST,
     });
   }
 }
