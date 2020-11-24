@@ -58,7 +58,11 @@ export class UsersService {
     }
   }
 
-  async findById(id: number): Promise<User> {
-    return await this.users.findOne({ id });
+  async findById(id: number): Promise<{ ok: boolean; error?: string; user?: User }> {
+    const user = await this.users.findOne({ id });
+    if (!user) {
+      return { ok: false, error: "Can't find User" };
+    }
+    return { ok: true, user };
   }
 }
