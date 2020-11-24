@@ -27,6 +27,11 @@ type CreateAccountOutput {
   ok: Boolean!
 }
 
+type EditProfileOutput {
+  error: String
+  ok: Boolean!
+}
+
 type LoginOutput {
   error: String
   ok: Boolean!
@@ -47,6 +52,7 @@ type Query {
 type Mutation {
   createAccount(input: CreateAccountInput!): CreateAccountOutput!
   login(input: LoginInput!): LoginOutput!
+  editProfile(input: EditProfileInput!): EditProfileOutput!
 }
 
 input CreateAccountInput {
@@ -58,4 +64,9 @@ input CreateAccountInput {
 input LoginInput {
   email: String!
   password: String!
+}
+
+input EditProfileInput {
+  email: String
+  password: String
 }

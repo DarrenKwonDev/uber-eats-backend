@@ -6,6 +6,7 @@ import { LoginInput } from './dtos/login.dto';
 import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from 'src/jwt/jwt.service';
+import { EditProfileInput } from './dtos/edit-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -58,11 +59,25 @@ export class UsersService {
     }
   }
 
-  async findById(id: number): Promise<{ ok: boolean; error?: string; user?: User }> {
-    const user = await this.users.findOne({ id });
-    if (!user) {
-      return { ok: false, error: "Can't find User" };
+  async findById(id: number): Promise<User> {
+    return this.users.findOne({ id });
+  }
+
+  async editProfile(userId: number, editProfileInput: EditProfileInput) {
+    // editProfileInput을 destructuring 하지마세요. 빈 값이 undefined로 들어와서 update할 경우 기존 값을 덮어버립니다
+    // 그래서 전 save를 씁니다. 게다가 typeORM은 update해도 @BeforeUpdate 리슨 못 합니다.
+
+    const user = await this.users.findOne({ id: userId });
+
+    if (editProfileInput.email) {
+      //TODO: email verification 해야 함
+      user.email = editProfileInput.email;
     }
-    return { ok: true, user };
+    if (editProfileInput.password) {
+      // 이 방식으로 해야 @BeforeUpdate 리스너가 돎.
+      user.password = editProfileInput.password;
+    }
+
+    return this.users.save(user); // If entity does not exist in the database then inserts, otherwise updates.
   }
 }
