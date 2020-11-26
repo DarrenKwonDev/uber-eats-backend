@@ -10,6 +10,7 @@ import { User } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleWare } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
+import { Verification } from './users/entities/verification.entity';
 
 @Module({
   imports: [
@@ -36,7 +37,7 @@ import { AuthModule } from './auth/auth.module';
       database: process.env.DB_DATABASE,
       synchronize: process.env.NODE_ENV === 'prod' ? false : true, // Setting synchronize: true shouldn't be used in production - otherwise you can lose production data.
       logging: false,
-      entities: [User],
+      entities: [User, Verification],
       // autoLoadEntities: true, // 자동으로 entity 넣어주기
     }),
     GraphQLModule.forRoot({

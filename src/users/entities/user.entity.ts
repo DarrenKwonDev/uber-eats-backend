@@ -18,12 +18,12 @@ registerEnumType(UserRole, { name: 'UserRole' });
 @Entity()
 export class User extends CoreEntity {
   @Field(() => String) // gql
-  @Column() // typeorm
+  @Column({ type: 'text' }) // typeorm 이걸 type을 안 줘도 작동하던데...
   @IsEmail() // class-validatior
   email: string;
 
   @Field(() => String)
-  @Column()
+  @Column({ type: 'text', select: false })
   @IsString()
   password: string;
 
@@ -32,14 +32,20 @@ export class User extends CoreEntity {
   @IsEnum(UserRole)
   role: UserRole;
 
+  @Field(() => Boolean)
+  @Column({ default: false })
+  verified: boolean;
+
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword(): Promise<void> {
-    try {
-      this.password = await bcrypt.hash(this.password, 10);
-    } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException();
+    if (this.password) {
+      try {
+        this.password = await bcrypt.hash(this.password, 10);
+      } catch (error) {
+        console.log(error);
+        throw new InternalServerErrorException();
+      }
     }
   }
 
