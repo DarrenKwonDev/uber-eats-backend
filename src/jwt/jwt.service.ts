@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Inject, Injectable } from '@nestjs/common';
-import { CONFIG_OPTIONS } from './jwt.constants';
 import { JWTModuleOptions } from './jwt.interfaces';
 import jwt from 'jsonwebtoken';
+import { CONFIG_OPTIONS } from 'src/common/common.constants';
 
 @Injectable()
 export class JwtService {

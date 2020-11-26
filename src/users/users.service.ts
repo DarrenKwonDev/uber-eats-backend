@@ -106,7 +106,11 @@ export class UsersService {
       if (verification) {
         // set user verified column true
         verification.user.verified = true;
-        this.users.save(verification.user);
+        await this.users.save(verification.user);
+
+        // 인증이 되었으면 verification은 사용되지 않으므로 해당 record를 지움
+        await this.verification.delete(verification.id);
+
         return { ok: true };
       }
       return { ok: false, error: 'Verification not found.' };
