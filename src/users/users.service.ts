@@ -9,6 +9,7 @@ import { JwtService } from 'src/jwt/jwt.service';
 import { EditProfileInput } from './dtos/edit-profile.dto';
 import { Verification } from './entities/verification.entity';
 import { VerifyEmailOutput } from './dtos/verify-email.eto';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +20,7 @@ export class UsersService {
     private readonly verification: Repository<Verification>,
     private readonly config: ConfigService,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   async createAccount({ email, password, role }: CreateAccountInput): Promise<{ ok: boolean; error?: string }> {
@@ -31,8 +33,10 @@ export class UsersService {
 
       // create user and save it(password will be hased by listener)
       const createdUser = await this.users.save(this.users.create({ email, password, role }));
+      const createdVerification = await this.verification.save(this.verification.create({ user: createdUser }));
+
       //TODO: send virification email
-      await this.verification.save(this.verification.create({ user: createdUser }));
+      this.mailService.sendVerificationEmail(createdUser.email, createdUser.email, createdVerification.code);
 
       return { ok: true };
     } catch (error) {
@@ -83,8 +87,9 @@ export class UsersService {
       if (editProfileInput.email) {
         user.email = editProfileInput.email;
         user.verified = false; // email을 바꿨으니 새로 verification해야 함
-        //TODO: email verification 해야 함
-        await this.verification.save(this.verification.create({ user }));
+        const createdVerification = await this.verification.save(this.verification.create({ user }));
+        // email 바뀌었으니 새로 email verification 해야 함
+        this.mailService.sendVerificationEmail(user.email, user.email, createdVerification.code);
       }
       if (editProfileInput.password) {
         // 이 방식으로 해야 @BeforeUpdate 리스너가 돎.
