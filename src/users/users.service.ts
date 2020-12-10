@@ -35,7 +35,7 @@ export class UsersService {
 
       const createdVerification = await this.verification.save(this.verification.create({ user: createdUser }));
 
-      //TODO: send virification email
+      //TODO: send virification email to, email, code
       this.mailService.sendVerificationEmail(createdUser.email, createdUser.email, createdVerification.code);
 
       return { ok: true };
