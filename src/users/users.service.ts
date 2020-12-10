@@ -32,6 +32,7 @@ export class UsersService {
 
       // create user and save it(password will be hased by listener)
       const createdUser = await this.users.save(this.users.create({ email, password, role }));
+
       const createdVerification = await this.verification.save(this.verification.create({ user: createdUser }));
 
       //TODO: send virification email

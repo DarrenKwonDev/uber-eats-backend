@@ -40,7 +40,7 @@ import { MailModule } from './mail/mail.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       synchronize: process.env.NODE_ENV === 'prod' ? false : true, // Setting synchronize: true shouldn't be used in production - otherwise you can lose production data.
-      logging: false,
+      logging: false, // 너무 시끄러워서 껐음
       entities: [User, Verification],
       // autoLoadEntities: true, // 자동으로 entity 넣어주기
     }),

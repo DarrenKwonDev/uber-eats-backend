@@ -2,7 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { CreateDateColumn, DeleteDateColumn, PrimaryGeneratedColumn } from 'typeorm';
 
 // ------------------------------------------------
-// wannt knwo about CreateDateColumn, DeleteDateColumn?
+// wannt know about CreateDateColumn, DeleteDateColumn?
 // https://typeorm.io/#/entities/special-columns
 // ------------------------------------------------
 @ObjectType()

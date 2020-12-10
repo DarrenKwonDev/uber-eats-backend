@@ -1,7 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { JwtMiddleWare } from './jwt/jwt.middleware';
 
 const PORT = 4000;
 
