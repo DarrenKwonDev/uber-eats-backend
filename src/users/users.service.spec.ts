@@ -11,6 +11,7 @@ const mockRepository = () => ({
   findOne: jest.fn(),
   save: jest.fn(),
   create: jest.fn(),
+  findOneOrFail: jest.fn(),
 });
 
 const mockJwtService = {
@@ -139,12 +140,60 @@ describe('UserService', () => {
 
       expect(jwtService.sign).toHaveBeenCalledTimes(1);
       expect(jwtService.sign).toHaveBeenCalledWith(expect.any(Object));
-
       expect(result).toEqual({ ok: true, token: 'whatever signed token' });
     });
   });
 
-  it.todo('findById');
-  it.todo('editProfile');
+  describe('findById', () => {
+    it('should find an existing user', async () => {
+      const findByIdArgs = { id: 1 };
+      userRepository.findOneOrFail.mockResolvedValue(findByIdArgs);
+      const result = await service.findById(1);
+      expect(result).toEqual({ ok: true, user: findByIdArgs });
+    });
+
+    it('should fail if no user if found', async () => {
+      userRepository.findOneOrFail.mockRejectedValue(new Error());
+      const result = await service.findById(1);
+      expect(result).toEqual({ ok: false, error: 'User Not Found' });
+    });
+  });
+
+  describe('editProfile', () => {
+    const oldUser = {
+      email: 'old@email.com',
+      verified: true,
+    };
+    const editProfileArgs = {
+      userId: 1,
+      editProfileInput: { email: 'new@email.com' },
+    };
+    const newVerification = {
+      code: 'code',
+    };
+    const newUser = {
+      verified: false,
+      email: editProfileArgs.editProfileInput.email,
+    };
+    it('should change email', async () => {
+      userRepository.findOne.mockResolvedValue(oldUser);
+      verificationRepository.create.mockReturnValue(newVerification);
+      verificationRepository.save.mockResolvedValue(newVerification);
+
+      await service.editProfile(editProfileArgs.userId, editProfileArgs.editProfileInput);
+
+      expect(userRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(userRepository.findOne).toHaveBeenCalledWith(editProfileArgs.userId);
+      expect(verificationRepository.create).toHaveBeenLastCalledWith({ user: newUser });
+      expect(verificationRepository.save).toHaveBeenLastCalledWith(newVerification);
+
+      expect(emailService.sendVerificationEmail).toHaveBeenCalledWith(
+        editProfileArgs.editProfileInput.email,
+        editProfileArgs.editProfileInput.email,
+        newVerification.code,
+      );
+    });
+  });
+
   it.todo('verifyEmail');
 });

@@ -9,6 +9,7 @@ import { EditProfileInput } from './dtos/edit-profile.dto';
 import { Verification } from './entities/verification.entity';
 import { VerifyEmailOutput } from './dtos/verify-email.eto';
 import { MailService } from 'src/mail/mail.service';
+import { UserProfileOutput } from './dtos/user-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -67,14 +68,19 @@ export class UsersService {
     }
   }
 
-  async findById(id: number): Promise<User> {
-    // password double hashing 문제로 select를 굳이 해줘야 함...
-    return this.users.findOne(
-      { id },
-      {
-        select: ['password', 'id', 'email', 'password', 'role', 'verified'],
-      },
-    );
+  async findById(id: number): Promise<UserProfileOutput> {
+    try {
+      // password double hashing 문제로 select를 굳이 해줘야 함...
+      const user = await this.users.findOneOrFail(
+        { id },
+        {
+          select: ['password', 'id', 'email', 'password', 'role', 'verified'],
+        },
+      );
+      return { ok: true, user };
+    } catch (error) {
+      return { ok: false, error: 'User Not Found' };
+    }
   }
 
   async editProfile(userId: number, editProfileInput: EditProfileInput) {
@@ -82,7 +88,7 @@ export class UsersService {
     // 그래서 전 save를 씁니다. 게다가 typeORM은 update해도 @BeforeUpdate 리슨 못 합니다.
 
     try {
-      const user = await this.users.findOne({ id: userId });
+      const user = await this.users.findOne(userId);
 
       if (editProfileInput.email) {
         user.email = editProfileInput.email;

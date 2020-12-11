@@ -34,14 +34,11 @@ export class UserResolver {
   @UseGuards(AuthGaurd)
   async userProfile(@Args() userProfileInput: UserProfileInput): Promise<UserProfileOutput> {
     try {
-      const user = await this.userService.findById(userProfileInput.userId);
+      const { user, ok } = await this.userService.findById(userProfileInput.userId);
       if (!user) {
         throw Error();
       }
-      return {
-        ok: true,
-        user,
-      };
+      return { ok, user };
     } catch (e) {
       return {
         error: 'User Not Found',
