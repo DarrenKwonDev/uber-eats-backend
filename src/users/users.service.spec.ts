@@ -14,7 +14,7 @@ const mockRepository = () => ({
 });
 
 const mockJwtService = {
-  sign: jest.fn(),
+  sign: jest.fn(() => 'whatever signed token'),
   verify: jest.fn(),
 };
 
@@ -29,8 +29,9 @@ describe('UserService', () => {
   let userRepository: MockRepository<User>;
   let verificationRepository: MockRepository<Verification>;
   let emailService: MailService;
+  let jwtService: JwtService;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     const modules = await Test.createTestingModule({
       providers: [
         UsersService,
@@ -42,6 +43,7 @@ describe('UserService', () => {
     }).compile();
     service = modules.get<UsersService>(UsersService);
     emailService = modules.get<MailService>(MailService);
+    jwtService = modules.get<JwtService>(JwtService);
     userRepository = modules.get(getRepositoryToken(User));
     verificationRepository = modules.get(getRepositoryToken(Verification));
   });
@@ -100,9 +102,48 @@ describe('UserService', () => {
       // 최종적으로 result는 아래와 같이 되어야 함
       expect(result).toEqual({ ok: true });
     });
+
+    it('should fail on exception', async () => {
+      userRepository.findOne.mockRejectedValue(new Error('some err'));
+      const result = await service.createAccount(createAccountArgs);
+      expect(result).toEqual({ ok: false, error: `Can't create user` });
+    });
   });
 
-  it.todo('login');
+  describe('login', () => {
+    const loginArgs = { email: 'test@email.com', password: '1234' };
+    it('should fail if user does not exist', async () => {
+      userRepository.findOne.mockResolvedValue(null); // 유저 찾기가 실패해야함. null을 return하도록
+
+      const result = await service.login(loginArgs);
+
+      expect(userRepository.findOne).toHaveBeenCalledTimes(1); // 4번이 뜬다.. 왜?
+      expect(userRepository.findOne).toHaveBeenCalledWith(expect.any(Object), expect.any(Object));
+      expect(result).toEqual({ ok: false, error: 'user not found' });
+    });
+
+    it('should fail if the password is wrong', async () => {
+      const mockedUser = { id: 1, checkPassword: jest.fn(() => Promise.resolve(false)) }; // entity 내부에 정의된 메서드를 쓸 것이므로
+      userRepository.findOne.mockResolvedValue(mockedUser);
+
+      const result = await service.login(loginArgs);
+
+      expect(result).toEqual({ ok: false, error: 'wrong password' });
+    });
+
+    it('should return token if password correct', async () => {
+      const mockedUser = { id: 1, checkPassword: jest.fn(() => Promise.resolve(true)) };
+      userRepository.findOne.mockResolvedValue(mockedUser);
+
+      const result = await service.login(loginArgs);
+
+      expect(jwtService.sign).toHaveBeenCalledTimes(1);
+      expect(jwtService.sign).toHaveBeenCalledWith(expect.any(Object));
+
+      expect(result).toEqual({ ok: true, token: 'whatever signed token' });
+    });
+  });
+
   it.todo('findById');
   it.todo('editProfile');
   it.todo('verifyEmail');

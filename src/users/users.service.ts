@@ -40,7 +40,7 @@ export class UsersService {
 
       return { ok: true };
     } catch (error) {
-      return { ok: false, error: `Can't create user error message : ${error.message}` };
+      return { ok: false, error: `Can't create user` };
     }
   }
 
