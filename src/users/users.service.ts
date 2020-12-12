@@ -7,7 +7,7 @@ import { User } from './entities/user.entity';
 import { JwtService } from 'src/jwt/jwt.service';
 import { EditProfileInput } from './dtos/edit-profile.dto';
 import { Verification } from './entities/verification.entity';
-import { VerifyEmailOutput } from './dtos/verify-email.eto';
+import { VerifyEmailOutput } from './dtos/verify-email.dto';
 import { MailService } from 'src/mail/mail.service';
 import { UserProfileOutput } from './dtos/user-profile.dto';
 
