@@ -8,7 +8,7 @@ import { EmailVar, MailModuleOptions } from './mail.interfaces';
 export class MailService {
   constructor(@Inject(CONFIG_OPTIONS) private readonly options: MailModuleOptions) {}
 
-  private async sendEmail(subject: string, to: string, template: string, emailVars: EmailVar[]) {
+  async sendEmail(subject: string, to: string, template: string, emailVars: EmailVar[]): Promise<boolean> {
     const form = new FormData(); // 일반 FormData는 안됨. 문서 https://github.com/sindresorhus/got#body 참고
 
     // template 변수에 대해서는 https://documentation.mailgun.com/en/latest/api-sending.html#sending 참고
@@ -27,14 +27,16 @@ export class MailService {
     // quiet fail
     try {
       await got(`https://api.mailgun.net/v3/${this.options.domain}/messages`, {
+        method: 'POST',
+        body: form,
         headers: {
           Authorization: `Basic ${Buffer.from(`api:${this.options.apiKey}`).toString('base64')}`,
         },
-        method: 'POST',
-        body: form,
       });
+      return true;
     } catch (error) {
       console.log(error);
+      return false;
     }
   }
 
