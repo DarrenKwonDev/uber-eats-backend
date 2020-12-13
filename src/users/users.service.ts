@@ -41,6 +41,7 @@ export class UsersService {
 
       return { ok: true };
     } catch (error) {
+      // console.log(error.message);
       return { ok: false, error: `Can't create user` };
     }
   }
