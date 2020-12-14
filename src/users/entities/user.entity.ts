@@ -18,7 +18,7 @@ registerEnumType(UserRole, { name: 'UserRole' });
 @Entity()
 export class User extends CoreEntity {
   @Field(() => String) // gql
-  @Column({ type: 'text' }) // typeorm 이걸 type을 안 줘도 작동하던데...
+  @Column({ unique: true }) // typeorm 이걸 type을 안 줘도 작동하던데...
   @IsEmail() // class-validatior
   email: string;
 

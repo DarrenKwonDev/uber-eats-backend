@@ -92,8 +92,14 @@ export class UsersService {
       const user = await this.users.findOne(userId);
 
       if (editProfileInput.email) {
+        const exist = await this.users.findOne(editProfileInput.email);
+        if (exist) {
+          return { ok: false, error: 'this email is already taken by someone.' };
+        }
+
         user.email = editProfileInput.email;
         user.verified = false; // email을 바꿨으니 새로 verification해야 함
+        await this.verification.delete({ user: { id: user.id } });
         const createdVerification = await this.verification.save(this.verification.create({ user }));
         // email 바뀌었으니 새로 email verification 해야 함
         this.mailService.sendVerificationEmail(user.email, user.email, createdVerification.code);
@@ -107,6 +113,7 @@ export class UsersService {
         ok: true,
       };
     } catch (error) {
+      console.log(error); //  ER_DUP_ENTRY: Duplicate entry '2' for key 'verification.REL_8300048608d8721aea27747b07
       return { ok: false, error: 'Could not update profile.' };
     }
   }
