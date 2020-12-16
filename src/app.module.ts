@@ -12,6 +12,9 @@ import { JwtMiddleWare } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verification.entity';
 import { MailModule } from './mail/mail.module';
+import { Category } from './restaurants/entities/category.entity';
+import { Restaurant } from './restaurants/entities/restaurant.entity';
+import { RestaurantsModule } from './restaurants/restaurants.module';
 
 @Module({
   imports: [
@@ -41,11 +44,12 @@ import { MailModule } from './mail/mail.module';
       database: process.env.DB_DATABASE,
       synchronize: process.env.NODE_ENV !== 'prod', // Setting synchronize: true shouldn't be used in production - otherwise you can lose production data.
       logging: false, // 너무 시끄러워서 껐음
-      entities: [User, Verification],
+      entities: [User, Verification, Category, Restaurant],
       // autoLoadEntities: true, // 자동으로 entity 넣어주기
     }),
     GraphQLModule.forRoot({
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'), // set true if you want to use in memory gql
+      // autoSchemaFile: join(process.cwd(), 'src/schema.gql'), // set true if you want to use in memory gql
+      autoSchemaFile: true, // set true if you want to use in memory gql
       debug: true,
       playground: true,
       context: ({ req }) => ({ user: req['user'] }),
@@ -54,6 +58,7 @@ import { MailModule } from './mail/mail.module';
     CommonModule,
     JwtModule.forRoot({ privateKey: process.env.TOKEN_SECRET }),
     AuthModule,
+    RestaurantsModule,
     MailModule.forRoot({
       apiKey: process.env.MAILGUN_API_KEY,
       domain: process.env.MAILGUN_DOMAIN_NAME,

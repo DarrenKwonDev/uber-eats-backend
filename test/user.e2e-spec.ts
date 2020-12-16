@@ -24,6 +24,8 @@ describe('AppController (e2e)', () => {
   let verificationRepository: Repository<Verification>;
   let jwtToken: string;
 
+  const baseTest = () => request(app.getHttpServer()).post(GRAPHQL_ENDPOINT);
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -44,8 +46,7 @@ describe('AppController (e2e)', () => {
 
   describe('createAccount', () => {
     it('should create account', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
+      return baseTest()
         .send({
           query: `
           mutation {
@@ -68,8 +69,7 @@ describe('AppController (e2e)', () => {
     });
 
     it('should fail if account already exists', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
+      return baseTest()
         .send({
           query: `
           mutation {
@@ -94,8 +94,7 @@ describe('AppController (e2e)', () => {
 
   describe('login', () => {
     it('should login with correct password', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
+      return baseTest()
         .send({
           query: `
             mutation {
@@ -123,8 +122,7 @@ describe('AppController (e2e)', () => {
     });
 
     it('should not be able to login with wrong password', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
+      return baseTest()
         .send({
           query: `
             mutation {
@@ -159,8 +157,7 @@ describe('AppController (e2e)', () => {
     });
 
     it('should see a user profile', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
+      return baseTest()
         .set('X-JWT', jwtToken)
         .send({
           query: `
@@ -186,8 +183,7 @@ describe('AppController (e2e)', () => {
     });
 
     it('should not find a profile', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
+      return baseTest()
         .set('X-JWT', jwtToken)
         .send({
           query: `
@@ -221,8 +217,7 @@ describe('AppController (e2e)', () => {
     });
 
     it('should show my info', async () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
+      return baseTest()
         .set('X-JWT', jwtToken)
         .send({
           query: `{
@@ -242,8 +237,7 @@ describe('AppController (e2e)', () => {
     });
 
     it("should fail because user doesn't login", async () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
+      return baseTest()
         .send({
           query: `{
           me {
@@ -263,8 +257,7 @@ describe('AppController (e2e)', () => {
   describe('editProfile', () => {
     const NEW_EMAIL = 'lalala@email.com';
     it('change email', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
+      return baseTest()
         .set('X-JWT', jwtToken)
         .send({
           query: `
@@ -311,8 +304,7 @@ describe('AppController (e2e)', () => {
       verifyCode = code;
     });
     it('should verify email', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
+      return baseTest()
         .send({
           query: `
         mutation {
@@ -332,8 +324,7 @@ describe('AppController (e2e)', () => {
     });
 
     it('should fail on wrong verify code', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
+      return baseTest()
         .send({
           query: `
         mutation {
