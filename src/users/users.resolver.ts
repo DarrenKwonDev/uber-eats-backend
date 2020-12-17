@@ -1,6 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthUser } from 'src/auth/auth-user.decorator';
+import { Role } from 'src/auth/auth.decorator';
 import { AuthGaurd } from 'src/auth/auth.guard';
 import { CreateAccountInput, CreateAccountOutput } from './dtos/create-account.dto';
 import { EditProfileInput, EditProfileOutput } from './dtos/edit-profile.dto';
@@ -25,13 +26,13 @@ export class UserResolver {
   }
 
   @Query(() => User)
-  @UseGuards(AuthGaurd)
+  @Role(['Any']) // @role이 있으면 권한을 체크한다는 의미임
   me(@AuthUser() authUser: User) {
     return authUser;
   }
 
   @Query(() => UserProfileOutput)
-  @UseGuards(AuthGaurd)
+  @Role(['Any'])
   async userProfile(@Args() userProfileInput: UserProfileInput): Promise<UserProfileOutput> {
     try {
       const { user, ok } = await this.userService.findById(userProfileInput.userId);
@@ -48,7 +49,7 @@ export class UserResolver {
   }
 
   @Mutation(() => EditProfileOutput)
-  @UseGuards(AuthGaurd)
+  @Role(['Any'])
   async editProfile(
     @AuthUser() authUser: User,
     @Args('input') editProfileInput: EditProfileInput,

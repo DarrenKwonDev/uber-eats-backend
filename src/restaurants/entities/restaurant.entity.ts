@@ -27,7 +27,7 @@ export class Restaurant extends CoreEntity {
 
   // 유저가 지워지면 레스토랑도 지워져야 맞다
   @Field(() => User)
-  @ManyToOne(() => User, (user) => user.restaurants)
+  @ManyToOne(() => User, (user) => user.restaurants, { onDelete: 'CASCADE' })
   owner: User;
 
   // 카테고리가 지워지면 레스토랑도 지워지면 안됨. 차라리 orphan이 되는 것이 맞음. 따라서 카테고리 삭제시 null로 처리
