@@ -1,7 +1,8 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsString, Length } from 'class-validator';
+import { number } from 'joi';
 import { User } from 'src/users/entities/user.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, RelationId } from 'typeorm';
 import { CoreEntity } from '../../common/entities/core.entity';
 import { Category } from './category.entity';
 
@@ -29,6 +30,10 @@ export class Restaurant extends CoreEntity {
   @Field(() => User)
   @ManyToOne(() => User, (user) => user.restaurants, { onDelete: 'CASCADE' })
   owner: User;
+
+  // onwerId
+  @RelationId((restaurant: Restaurant) => restaurant.owner)
+  ownerId: number;
 
   // 카테고리가 지워지면 레스토랑도 지워지면 안됨. 차라리 orphan이 되는 것이 맞음. 따라서 카테고리 삭제시 null로 처리
   // 이를 위해 category가 nullable할 수 있도록 하자.
