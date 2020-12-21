@@ -7,38 +7,22 @@ import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-res
 import { EditRestaurantInput } from './dtos/update-restaurant.dto';
 import { Category } from './entities/category.entity';
 import { Restaurant } from './entities/restaurant.entity';
+import { CategoryRepository } from './retositories/category.repository';
 
 @Injectable()
 export class RestaurantService {
   constructor(
     @InjectRepository(Restaurant)
     private readonly restaurant: Repository<Restaurant>,
-    @InjectRepository(Category)
-    private readonly categories: Repository<Category>,
+    private readonly categories: CategoryRepository,
   ) {}
 
-  async GetOrCreateCategory(name: string): Promise<Category> {
-    const categoryName = name.trim().toLowerCase();
-    const categorySlug = categoryName.replace(/ /g, '-');
-    let category = await this.categories.findOne({ slug: categorySlug });
-
-    // 기존 카테고리가 없으면 새로 생성
-    if (!category) {
-      category = await this.categories.save(this.categories.create({ slug: categorySlug, name: categoryName }));
-    }
-
-    return category;
-  }
-
-  // ================================
-  // resolver에서 사용되는 로직
-  // ================================
   async createRestaurant(owner: User, createRestaurantInput: CreateRestaurantInput): Promise<CreateRestaurantOutput> {
     try {
       const newRestaurant = this.restaurant.create(createRestaurantInput);
       newRestaurant.owner = owner;
 
-      const category = await this.GetOrCreateCategory(createRestaurantInput.categoryName);
+      const category = await this.categories.getOrCreate(createRestaurantInput.categoryName);
       newRestaurant.category = category;
 
       await this.restaurant.save(newRestaurant);
@@ -62,7 +46,20 @@ export class RestaurantService {
         return { ok: false, error: "You can't edit a restaurant you don't own" };
       }
 
-      ///// logic
+      let category: Category = null;
+
+      // 만약 input에 category가 없다면 category는 null이 됨
+      if (editRestaurantInput.categoryName) {
+        category = await this.categories.getOrCreate(editRestaurantInput.categoryName);
+      }
+
+      await this.restaurant.save([
+        {
+          id: editRestaurantInput.restaurantId,
+          ...editRestaurantInput,
+          ...(category && { category }), // category가 존재하면 {category} 반환
+        },
+      ]);
 
       return { ok: true };
     } catch (error) {
