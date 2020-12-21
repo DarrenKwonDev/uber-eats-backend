@@ -4,6 +4,7 @@ import { EditProfileOutput } from 'src/users/dtos/edit-profile.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-restaurant.dto';
+import { DeleteRestaurantInput, DeleteRestaurantOutput } from './dtos/delete-restaurant.dto';
 import { EditRestaurantInput } from './dtos/update-restaurant.dto';
 import { Category } from './entities/category.entity';
 import { Restaurant } from './entities/restaurant.entity';
@@ -65,6 +66,27 @@ export class RestaurantService {
     } catch (error) {
       console.log(error.message);
       return { ok: false, error: 'Could not edit Restaurant' };
+    }
+  }
+
+  async deleteRestaurant(owner: User, deleteRestaurantInput: DeleteRestaurantInput): Promise<DeleteRestaurantOutput> {
+    try {
+      const restaurant = await this.restaurant.findOne(deleteRestaurantInput.restaurantId);
+
+      if (!restaurant) {
+        return { ok: false, error: 'Restaurant Not Found' };
+      }
+
+      if (restaurant.ownerId !== owner.id) {
+        return { ok: false, error: "You can't delete a restaurant you don't own" };
+      }
+
+      await this.restaurant.delete(deleteRestaurantInput.restaurantId);
+
+      return { ok: true };
+    } catch (error) {
+      console.log(error.message);
+      return { ok: false, error: 'Could not delete Restaurant' };
     }
   }
 }
