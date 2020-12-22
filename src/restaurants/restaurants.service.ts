@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EditProfileOutput } from 'src/users/dtos/edit-profile.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
+import { AllCategoriesOutput } from './dtos/all-categories.dto';
+import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-restaurant.dto';
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from './dtos/delete-restaurant.dto';
 import { EditRestaurantInput } from './dtos/update-restaurant.dto';
@@ -87,6 +89,31 @@ export class RestaurantService {
     } catch (error) {
       console.log(error.message);
       return { ok: false, error: 'Could not delete Restaurant' };
+    }
+  }
+
+  async allCategories(): Promise<AllCategoriesOutput> {
+    try {
+      const categories = await this.categories.find();
+      return { ok: true, categories };
+    } catch (error) {
+      return { ok: false, error: 'fail to get all categories' };
+    }
+  }
+
+  async countRestaurants(category: Category): Promise<number> {
+    return await this.restaurant.count({ category });
+  }
+
+  async findCategoryBySlug({ slug }: CategoryInput): Promise<CategoryOutput> {
+    try {
+      const category = await this.categories.findOne({ slug }, { relations: ['restaurants'] });
+      if (!category) {
+        return { ok: false, error: 'Could not found' };
+      }
+      return { ok: true, category };
+    } catch (error) {
+      return { ok: false, error: 'Could not load cateogry' };
     }
   }
 }
