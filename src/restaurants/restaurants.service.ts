@@ -105,13 +105,21 @@ export class RestaurantService {
     return await this.restaurant.count({ category });
   }
 
-  async findCategoryBySlug({ slug }: CategoryInput): Promise<CategoryOutput> {
+  async findCategoryBySlug({ slug, page }: CategoryInput): Promise<CategoryOutput> {
     try {
       const category = await this.categories.findOne({ slug }, { relations: ['restaurants'] });
       if (!category) {
         return { ok: false, error: 'Could not found' };
       }
-      return { ok: true, category };
+
+      // pagination. 1 page 당 5개씩만 보여주기로
+      const restaurants = await this.restaurant.find({ where: { category }, take: 5, skip: (page - 1) * 5 });
+      category.restaurants = restaurants;
+
+      // total results
+      const totalResults = await this.countRestaurants(category);
+
+      return { ok: true, category, totalPage: Math.ceil(totalResults / 5) };
     } catch (error) {
       return { ok: false, error: 'Could not load cateogry' };
     }
