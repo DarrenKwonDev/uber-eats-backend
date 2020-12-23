@@ -7,7 +7,9 @@ import { AllCategoriesOutput } from './dtos/all-categories.dto';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import { CreateDishInput, CreateDishOutput } from './dtos/create-dish.dto';
 import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-restaurant.dto';
+import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from './dtos/delete-restaurant.dto';
+import { EditDishIntput, EditDishOutput } from './dtos/edit-dish.dto';
 import { RestaurantInput, RestaurantOutput } from './dtos/restaurant.dto';
 import { RestaurantsInput, RestaurantsOutput } from './dtos/restaurants.dto';
 import { SearchRestaurantInput, SearchRestaurantOutput } from './dtos/search-restaurant.dto';
@@ -195,7 +197,48 @@ export class RestaurantService {
 
       return { ok: true };
     } catch (error) {
+      console.log(error.message);
       return { ok: false, error: 'Could not create dish' };
+    }
+  }
+
+  async editDish(owner: User, editDishIntput: EditDishIntput): Promise<EditDishOutput> {
+    try {
+      const dish = await this.dishes.findOne(editDishIntput.dishId, { relations: ['restaurant'] });
+      if (!dish) {
+        return { ok: false, error: 'Dish not found' };
+      }
+      if (owner.id !== dish.restaurant.ownerId) {
+        return { ok: false, error: 'Only Owner edit dish' };
+      }
+
+      await this.dishes.save([
+        {
+          id: editDishIntput.dishId,
+          ...editDishIntput,
+        },
+      ]);
+    } catch (error) {
+      console.log(error.message);
+      return { ok: false, error: 'Could not edit Dish' };
+    }
+  }
+
+  async deleteDish(owner: User, deleteDishInput: DeleteDishInput): Promise<DeleteDishOutput> {
+    try {
+      const dish = await this.dishes.findOne(deleteDishInput.dishId, { relations: ['restaurant'] });
+      if (!dish) {
+        return { ok: false, error: 'Dish not found' };
+      }
+      if (owner.id !== dish.restaurant.ownerId) {
+        return { ok: false, error: 'Only Owner delete dish' };
+      }
+
+      await this.dishes.delete(deleteDishInput.dishId);
+      return { ok: true };
+    } catch (error) {
+      console.log(error.message);
+      return { ok: false, error: 'Could not delete Dish' };
     }
   }
 }
