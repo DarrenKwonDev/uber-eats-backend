@@ -2,9 +2,10 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsString, Length } from 'class-validator';
 import { number } from 'joi';
 import { User } from 'src/users/entities/user.entity';
-import { Column, Entity, ManyToOne, RelationId } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, RelationId } from 'typeorm';
 import { CoreEntity } from '../../common/entities/core.entity';
 import { Category } from './category.entity';
+import { Dish } from './dish.entity';
 
 @InputType('RestaurantInputType', { isAbstract: true })
 @ObjectType() // nest
@@ -40,4 +41,9 @@ export class Restaurant extends CoreEntity {
   @Field(() => Category, { nullable: true })
   @ManyToOne(() => Category, (category) => category.restaurants, { nullable: true, onDelete: 'SET NULL' })
   category: Category;
+
+  // 1개의 레스토랑은 여러 Dish를 가질 수 있다. dish가 지워져도 레스토랑은 그대로 있어야 한다.
+  @Field(() => [Dish])
+  @OneToMany(() => Dish, (dish) => dish.restaurant)
+  menu: Dish[];
 }

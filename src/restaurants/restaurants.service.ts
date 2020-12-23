@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EditProfileOutput } from 'src/users/dtos/edit-profile.dto';
 import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { Like, Raw, Repository } from 'typeorm';
 import { AllCategoriesOutput } from './dtos/all-categories.dto';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-restaurant.dto';
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from './dtos/delete-restaurant.dto';
+import { RestaurantInput, RestaurantOutput } from './dtos/restaurant.dto';
 import { RestaurantsInput, RestaurantsOutput } from './dtos/restaurants.dto';
+import { SearchRestaurantInput, SearchRestaurantOutput } from './dtos/search-restaurant.dto';
 import { EditRestaurantInput } from './dtos/update-restaurant.dto';
 import { Category } from './entities/category.entity';
 import { Restaurant } from './entities/restaurant.entity';
@@ -114,7 +116,11 @@ export class RestaurantService {
       }
 
       // pagination. 1 page 당 5개씩만 보여주기로
-      const restaurants = await this.restaurant.find({ where: { category }, take: 5, skip: (page - 1) * 5 });
+      const restaurants = await this.restaurant.find({
+        where: { category },
+        take: 5,
+        skip: (page - 1) * 5,
+      });
       category.restaurants = restaurants;
 
       // total results
@@ -128,11 +134,44 @@ export class RestaurantService {
 
   async allRestaurants({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
     try {
-      const [restaurants, totalCount] = await this.restaurant.findAndCount({ take: 5, skip: (page - 1) * 5 });
-      return { ok: true, restaurants, totalPage: Math.ceil(totalCount / 5) };
+      const [restaurants, results] = await this.restaurant.findAndCount({ take: 5, skip: (page - 1) * 5 });
+      return { ok: true, restaurants, totalPage: Math.ceil(results / 5), results };
     } catch (error) {
       console.log(error.message);
       return { ok: false, error: 'Could not load restaurants' };
+    }
+  }
+
+  async getRestaurantById(restaurantInput: RestaurantInput): Promise<RestaurantOutput> {
+    try {
+      const restaurant = await this.restaurant.findOne(restaurantInput.restaurantId);
+
+      if (!restaurant) {
+        return { ok: false, error: 'restaurant not found' };
+      }
+
+      return { ok: true, restaurant };
+    } catch (error) {
+      console.log(error.message);
+      return { ok: false, error: 'Could not load restaurant' };
+    }
+  }
+
+  async searchRestaurantByName({ query, page }: SearchRestaurantInput): Promise<SearchRestaurantOutput> {
+    try {
+      // MySQL에선 Like가 case-insensitive하므로 Raw sql을 사용하지 않기로.
+      // Postgresql 에서는 case-sensitive함. 그러나 typeORM에서는 ILIKE를 지원하지 않으므로 Raw Query를 짜야 함
+      const [restaurants, results] = await this.restaurant.findAndCount({
+        where: {
+          name: Like(`%${query}%`),
+        },
+        take: 5,
+        skip: (page - 1) * 5,
+      });
+
+      return { ok: true, restaurants, results, totalPage: Math.ceil(results / 5) };
+    } catch (error) {
+      return { ok: false, error: 'Could not search for Restaurant' };
     }
   }
 }
