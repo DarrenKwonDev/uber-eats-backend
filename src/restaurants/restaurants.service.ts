@@ -218,6 +218,7 @@ export class RestaurantService {
           ...editDishIntput,
         },
       ]);
+      return { ok: true };
     } catch (error) {
       console.log(error.message);
       return { ok: false, error: 'Could not edit Dish' };
