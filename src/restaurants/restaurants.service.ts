@@ -7,6 +7,7 @@ import { AllCategoriesOutput } from './dtos/all-categories.dto';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-restaurant.dto';
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from './dtos/delete-restaurant.dto';
+import { RestaurantsInput, RestaurantsOutput } from './dtos/restaurants.dto';
 import { EditRestaurantInput } from './dtos/update-restaurant.dto';
 import { Category } from './entities/category.entity';
 import { Restaurant } from './entities/restaurant.entity';
@@ -107,7 +108,7 @@ export class RestaurantService {
 
   async findCategoryBySlug({ slug, page }: CategoryInput): Promise<CategoryOutput> {
     try {
-      const category = await this.categories.findOne({ slug }, { relations: ['restaurants'] });
+      const category = await this.categories.findOne({ slug });
       if (!category) {
         return { ok: false, error: 'Could not found' };
       }
@@ -119,9 +120,19 @@ export class RestaurantService {
       // total results
       const totalResults = await this.countRestaurants(category);
 
-      return { ok: true, category, totalPage: Math.ceil(totalResults / 5) };
+      return { ok: true, category, restaurants, totalPage: Math.ceil(totalResults / 5) };
     } catch (error) {
       return { ok: false, error: 'Could not load cateogry' };
+    }
+  }
+
+  async allRestaurants({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
+    try {
+      const [restaurants, totalCount] = await this.restaurant.findAndCount({ take: 5, skip: (page - 1) * 5 });
+      return { ok: true, restaurants, totalPage: Math.ceil(totalCount / 5) };
+    } catch (error) {
+      console.log(error.message);
+      return { ok: false, error: 'Could not load restaurants' };
     }
   }
 }
