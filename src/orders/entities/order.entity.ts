@@ -1,10 +1,11 @@
 import { Field, Float, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { IsEnum } from 'class-validator';
+import { IsEnum, IsNumber } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
+import { OrderItem } from './order-item.entity';
 
 export enum OrderStatus {
   Pending = 'Pending',
@@ -31,23 +32,24 @@ export class Order extends CoreEntity {
   driver?: User;
 
   // 1개의 레스토랑은 여러 개의 Order를 가질 수 있다
-  @Field(() => Restaurant)
+  @Field(() => Restaurant, { nullable: true })
   @ManyToOne(() => Restaurant, (restaurant) => restaurant.orders, { onDelete: 'SET NULL', nullable: true })
-  restaurant: Restaurant;
+  restaurant?: Restaurant;
 
-  // 상식적으로 order에서 dish를 불러오므로 JoinTable을 여기에 추가해줍시다
-  // 다대다 관계는 Dish의 column을 지정하지 않고 이대로 끝냅니다.
-  @Field(() => [Dish])
-  @ManyToMany(() => Dish)
+  // 상식적으로 order에서 OrderItem를 불러오므로 JoinTable을 여기에 추가해줍시다
+  // 다대다 관계는 OrderItem의 column을 지정하지 않고 이대로 끝냅니다.
+  @Field(() => [OrderItem])
+  @ManyToMany(() => OrderItem)
   @JoinTable()
-  dishes: Dish[];
+  items: OrderItem[];
 
-  @Field(() => Float)
-  @Column()
-  total: number;
+  @Field(() => Float, { nullable: true })
+  @Column({ nullable: true })
+  @IsNumber()
+  total?: number;
 
   @Field(() => OrderStatus)
-  @Column({ type: 'enum', enum: OrderStatus })
+  @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.Pending })
   @IsEnum(OrderStatus)
   status: OrderStatus;
 }
