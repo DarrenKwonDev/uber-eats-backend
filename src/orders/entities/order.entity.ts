@@ -4,12 +4,13 @@ import { CoreEntity } from 'src/common/entities/core.entity';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, RelationId } from 'typeorm';
 import { OrderItem } from './order-item.entity';
 
 export enum OrderStatus {
   Pending = 'Pending',
   Cooking = 'Cooking',
+  Cooked = 'Cooked',
   PickedUp = 'PickedUp',
   Delivered = 'Delivered',
 }
@@ -26,10 +27,18 @@ export class Order extends CoreEntity {
   @ManyToOne(() => User, (user) => user.orders, { onDelete: 'SET NULL', nullable: true })
   customer?: User;
 
+  // customerId
+  @RelationId((order: Order) => order.customer)
+  customerId: number;
+
   // 내가 Rider라면
   @Field(() => User, { nullable: true })
   @ManyToOne(() => User, (user) => user.rides, { onDelete: 'SET NULL', nullable: true })
   driver?: User;
+
+  // customerId
+  @RelationId((order: Order) => order.driver)
+  driverId: number;
 
   // 1개의 레스토랑은 여러 개의 Order를 가질 수 있다
   @Field(() => Restaurant, { nullable: true })
