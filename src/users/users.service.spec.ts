@@ -5,7 +5,7 @@ import { MailService } from 'src/mail/mail.service';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Verification } from './entities/verification.entity';
-import { UsersService } from './users.service';
+import { UserService } from './users.service';
 
 const mockRepository = () => ({
   findOne: jest.fn(),
@@ -27,7 +27,7 @@ const mockMailService = () => ({
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 
 describe('UserService', () => {
-  let service: UsersService;
+  let service: UserService;
   let userRepository: MockRepository<User>;
   let verificationRepository: MockRepository<Verification>;
   let emailService: MailService;
@@ -36,14 +36,14 @@ describe('UserService', () => {
   beforeEach(async () => {
     const modules = await Test.createTestingModule({
       providers: [
-        UsersService,
+        UserService,
         { provide: getRepositoryToken(User), useValue: mockRepository() },
         { provide: getRepositoryToken(Verification), useValue: mockRepository() },
         { provide: JwtService, useValue: mockJwtService() },
         { provide: MailService, useValue: mockMailService() },
       ],
     }).compile();
-    service = modules.get<UsersService>(UsersService);
+    service = modules.get<UserService>(UserService);
     emailService = modules.get<MailService>(MailService);
     jwtService = modules.get<JwtService>(JwtService);
     userRepository = modules.get(getRepositoryToken(User));

@@ -12,7 +12,7 @@ import { MailService } from 'src/mail/mail.service';
 import { UserProfileOutput } from './dtos/user-profile.dto';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly users: Repository<User>,

@@ -56,12 +56,23 @@ import { OrderItem } from './orders/entities/order-item.entity';
       autoSchemaFile: true, // set true if you want to use in memory gql
       debug: true,
       playground: true,
-      context: ({ req }) => ({ user: req['user'] }),
+      installSubscriptionHandlers: true, // subscription 사용
+      context: ({ req, connection }) => {
+        const TOKEN_KEY = 'x-jwt';
+        // http
+        if (req) {
+          return { token: req.headers[TOKEN_KEY] }; // 헤더에 있는 토큰만 쓸거니 헤더 중 토큰만 솎아서 보내자
+        }
+        // ws. connection은 ws 연결시 딱 한 번만 반환됨
+        if (connection) {
+          return { token: connection.context[TOKEN_KEY] }; // connection.context 에 토큰이 들어 있다
+        }
+      },
     }),
     UsersModule,
     CommonModule,
     JwtModule.forRoot({ privateKey: process.env.TOKEN_SECRET }),
-    AuthModule,
+    AuthModule, // 전역 Guard임. 주의!
     RestaurantsModule,
     MailModule.forRoot({
       apiKey: process.env.MAILGUN_API_KEY,
@@ -73,14 +84,16 @@ import { OrderItem } from './orders/entities/order-item.entity';
   controllers: [],
   providers: [],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(JwtMiddleWare).forRoutes({
-      path: '/graphql',
-      method: RequestMethod.POST,
-    });
-  }
-}
+export class AppModule {}
+
+// export class AppModule implements NestModule {
+//   configure(consumer: MiddlewareConsumer) {
+//     consumer.apply(JwtMiddleWare).forRoutes({
+//       path: '/graphql',
+//       method: RequestMethod.POST,
+//     });
+//   }
+// }
 
 // typeDefs,
 // resolvers,

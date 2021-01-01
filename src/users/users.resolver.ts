@@ -9,11 +9,11 @@ import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { UserProfileInput, UserProfileOutput } from './dtos/user-profile.dto';
 import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
 import { User } from './entities/user.entity';
-import { UsersService } from './users.service';
+import { UserService } from './users.service';
 
 @Resolver(() => User) // User에 관한 resolver라는 의미일 뿐 안 적어도 상관은 없음
 export class UserResolver {
-  constructor(private readonly userService: UsersService) {}
+  constructor(private readonly userService: UserService) {}
 
   @Mutation(() => CreateAccountOutput)
   async createAccount(@Args('input') createAccountInput: CreateAccountInput): Promise<CreateAccountOutput> {
