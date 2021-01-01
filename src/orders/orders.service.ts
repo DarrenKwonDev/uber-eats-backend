@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
-import { NEW_PENDING_ORDER, PUB_SUB } from 'src/common/common.constants';
+import { NEW_COOKED_ORDER, NEW_PENDING_ORDER, PUB_SUB } from 'src/common/common.constants';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { User, UserRole } from 'src/users/entities/user.entity';
@@ -156,7 +156,8 @@ export class OrderService {
 
   async editOrder(user: User, { id: orderId, status }: EditOrderInput): Promise<EditOrderOutput> {
     try {
-      const order = await this.orders.findOne(orderId, { relations: ['restaurant'] });
+      // customer, restaurant, driver... 등 relations 옵션을 이용하기 보다 Order entity에서 eager를 설정하도록하자
+      const order = await this.orders.findOne(orderId);
       if (!order) {
         return { ok: false, error: 'Order not found' };
       }
@@ -188,7 +189,15 @@ export class OrderService {
         return { ok: false, error: 'you can not do that' };
       }
 
-      await this.orders.save([{ id: orderId, status }]);
+      // 이 order는 전체 order가 아니라 수정된 부분반 반환하므로 재사용할 수 없다
+      await this.orders.save({ id: orderId, status });
+
+      if (user.role === UserRole.Owner) {
+        if (status === OrderStatus.Cooked) {
+          // publish. 기본 order에 status만 덮어 쓰는 방식
+          await this.pubSub.publish(NEW_COOKED_ORDER, { cookedOrders: { ...order, status } });
+        }
+      }
 
       return { ok: true };
     } catch (error) {

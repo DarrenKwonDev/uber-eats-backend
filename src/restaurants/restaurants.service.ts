@@ -47,7 +47,7 @@ export class RestaurantService {
 
   async editRestaurant(owner: User, editRestaurantInput: EditRestaurantInput): Promise<EditProfileOutput> {
     try {
-      // restaurant의 owner의 id만 필요하므로 loadRelationIds을 사용
+      // restaurant의 owner의 id만 필요하므로 loadRelationIds을 사용하지 않음
       const restaurant = await this.restaurant.findOne(editRestaurantInput.restaurantId);
 
       if (!restaurant) {

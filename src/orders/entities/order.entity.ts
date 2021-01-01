@@ -24,7 +24,7 @@ export class Order extends CoreEntity {
   // 1명의 고객은 여러 주문을 할 수 있다.
   // user를 지운다고 해서 이미 주문 중일 걸 삭제할 수는 없다.
   @Field(() => User, { nullable: true })
-  @ManyToOne(() => User, (user) => user.orders, { onDelete: 'SET NULL', nullable: true })
+  @ManyToOne(() => User, (user) => user.orders, { onDelete: 'SET NULL', nullable: true, eager: true })
   customer?: User;
 
   // customerId
@@ -33,7 +33,7 @@ export class Order extends CoreEntity {
 
   // 내가 Rider라면
   @Field(() => User, { nullable: true })
-  @ManyToOne(() => User, (user) => user.rides, { onDelete: 'SET NULL', nullable: true })
+  @ManyToOne(() => User, (user) => user.rides, { onDelete: 'SET NULL', nullable: true, eager: true })
   driver?: User;
 
   // customerId
@@ -42,13 +42,13 @@ export class Order extends CoreEntity {
 
   // 1개의 레스토랑은 여러 개의 Order를 가질 수 있다
   @Field(() => Restaurant, { nullable: true })
-  @ManyToOne(() => Restaurant, (restaurant) => restaurant.orders, { onDelete: 'SET NULL', nullable: true })
+  @ManyToOne(() => Restaurant, (restaurant) => restaurant.orders, { onDelete: 'SET NULL', nullable: true, eager: true })
   restaurant?: Restaurant;
 
   // 상식적으로 order에서 OrderItem를 불러오므로 JoinTable을 여기에 추가해줍시다
   // 다대다 관계는 OrderItem의 column을 지정하지 않고 이대로 끝냅니다.
   @Field(() => [OrderItem])
-  @ManyToMany(() => OrderItem)
+  @ManyToMany(() => OrderItem, { eager: true })
   @JoinTable()
   items: OrderItem[];
 
