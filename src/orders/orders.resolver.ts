@@ -3,12 +3,14 @@ import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { PubSub } from 'graphql-subscriptions';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { Role } from 'src/auth/auth.decorator';
-import { NEW_COOKED_ORDER, NEW_PENDING_ORDER, PUB_SUB } from 'src/common/common.constants';
+import { NEW_COOKED_ORDER, NEW_PENDING_ORDER, PUB_SUB, NEW_ORDER_UPDATE } from 'src/common/common.constants';
 import { User } from 'src/users/entities/user.entity';
 import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
+import { OrderUpdatesInput } from './dtos/order-updates.dto';
+import { TakeOrderInput, TakeOrderOutput } from './dtos/take-order.dto';
 import { Order } from './entities/order.entity';
 import { OrderService } from './orders.service';
 export class OrderResolver {
@@ -63,5 +65,36 @@ export class OrderResolver {
   @Role(['Delivery'])
   cookedOrders() {
     return this.pubSub.asyncIterator(NEW_COOKED_ORDER);
+  }
+
+  // Client는 자신의 주문의 상태가 어떤지 실시간으로 받아 봐야 한다.
+  @Subscription(() => Order, {
+    filter: (
+      { orderUpdates }: { orderUpdates: Order },
+      { input }: { input: OrderUpdatesInput },
+      { user }: { user: User },
+    ) => {
+      // 레스토랑 주인도 아니고, 드라이버도 아니고, 주문자도 아니면 이걸 볼 이유가 없다. 쳐내자
+      if (
+        orderUpdates.driverId !== user.id &&
+        orderUpdates.customerId !== user.id &&
+        orderUpdates.restaurant.ownerId !== user.id
+      ) {
+        return false;
+      }
+
+      // 유저가 입력한 id에 대한 order만 보게 해야 함
+      return orderUpdates.id === input.id;
+    },
+  })
+  @Role(['Any'])
+  orderUpdates(@Args('input') orderUpdatesInput: OrderUpdatesInput) {
+    return this.pubSub.asyncIterator(NEW_ORDER_UPDATE);
+  }
+
+  @Mutation(() => TakeOrderOutput)
+  @Role(['Delivery'])
+  takeOrder(@AuthUser() driver: User, @Args('input') takeOrderInput: TakeOrderInput): Promise<TakeOrderOutput> {
+    return this.orderService.takeOrder(driver, takeOrderInput);
   }
 }

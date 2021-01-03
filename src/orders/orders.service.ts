@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
-import { NEW_COOKED_ORDER, NEW_PENDING_ORDER, PUB_SUB } from 'src/common/common.constants';
+import { NEW_COOKED_ORDER, NEW_ORDER_UPDATE, NEW_PENDING_ORDER, PUB_SUB } from 'src/common/common.constants';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { User, UserRole } from 'src/users/entities/user.entity';
@@ -10,6 +10,7 @@ import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
+import { TakeOrderInput, TakeOrderOutput } from './dtos/take-order.dto';
 import { OrderItem } from './entities/order-item.entity';
 import { Order, OrderStatus } from './entities/order.entity';
 
@@ -192,16 +193,42 @@ export class OrderService {
       // 이 order는 전체 order가 아니라 수정된 부분반 반환하므로 재사용할 수 없다
       await this.orders.save({ id: orderId, status });
 
+      const newOrder = { ...order, status };
       if (user.role === UserRole.Owner) {
         if (status === OrderStatus.Cooked) {
           // publish. 기본 order에 status만 덮어 쓰는 방식
-          await this.pubSub.publish(NEW_COOKED_ORDER, { cookedOrders: { ...order, status } });
+          await this.pubSub.publish(NEW_COOKED_ORDER, { cookedOrders: newOrder });
         }
       }
+
+      // 주문한 Client는 status가 바뀌면 바로 알아봐야 한다. 따라서 update 되는 즉시 알아야 한다
+      await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: newOrder });
 
       return { ok: true };
     } catch (error) {
       return { ok: false, error: 'Could not edit Order' };
+    }
+  }
+
+  async takeOrder(driver: User, { id: orderId }: TakeOrderInput): Promise<TakeOrderOutput> {
+    try {
+      const order = await this.orders.findOne(orderId);
+      if (!order) {
+        return { ok: false, error: 'order not found' };
+      }
+      if (order.driver) {
+        return { ok: false, error: 'this order already has a driver' };
+      }
+
+      // 수정
+      await this.orders.save({ id: orderId, driver });
+
+      await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: { ...order, driver } });
+
+      return { ok: true };
+    } catch (error) {
+      console.log(error.message);
+      return { ok: false, error: 'Could not take order' };
     }
   }
 }
