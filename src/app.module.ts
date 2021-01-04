@@ -19,6 +19,8 @@ import { Dish } from './restaurants/entities/dish.entity';
 import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
+import { PaymentsModule } from './payments/payments.module';
+import { Payment } from './payments/entities/payment.entity';
 
 @Module({
   imports: [
@@ -48,7 +50,7 @@ import { OrderItem } from './orders/entities/order-item.entity';
       database: process.env.DB_DATABASE,
       synchronize: process.env.NODE_ENV !== 'prod', // Setting synchronize: true shouldn't be used in production - otherwise you can lose production data.
       logging: false, // 너무 시끄러워서 껐음
-      entities: [User, Verification, Category, Restaurant, Dish, Order, OrderItem],
+      entities: [User, Verification, Category, Restaurant, Dish, Order, OrderItem, Payment],
       // autoLoadEntities: true, // 자동으로 entity 넣어주기
     }),
     GraphQLModule.forRoot({
@@ -80,6 +82,7 @@ import { OrderItem } from './orders/entities/order-item.entity';
       fromEmail: process.env.MAILGUN_FROM_EMAIL,
     }),
     OrdersModule,
+    PaymentsModule,
   ],
   controllers: [],
   providers: [],
