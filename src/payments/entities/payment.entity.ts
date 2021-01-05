@@ -8,9 +8,9 @@ import { Column, Entity, ManyToOne, RelationId } from 'typeorm';
 @ObjectType() // nest
 @Entity() // typeORM
 export class Payment extends CoreEntity {
-  @Field(() => Int)
+  @Field(() => String)
   @Column()
-  transactionId: number;
+  transactionId: string;
 
   // 1명의 유저는 여러 개의 결제 이력을 가질 수 있음
   // 유저 지워졌다고 payment를 지우면 안됨. 남겨야 함. onDelete는 set null
@@ -22,10 +22,12 @@ export class Payment extends CoreEntity {
   userId: number;
 
   // restaurnt에 payment 관련 연결 안 할거임. inverse 안할거니 아무 설정도 안 할거임
+  // 따라서 Restaurant에 OneToMany 안 할거임.
   @Field(() => Restaurant)
   @ManyToOne(() => Restaurant)
   restaurant?: Restaurant;
 
+  @Field(() => Int)
   @RelationId((payment: Payment) => payment.restaurant)
   restaurantId: number;
 }
