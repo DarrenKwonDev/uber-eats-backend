@@ -140,7 +140,12 @@ export class RestaurantService {
 
   async allRestaurants({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
     try {
-      const [restaurants, results] = await this.restaurant.findAndCount({ take: 5, skip: (page - 1) * 5 });
+      // isPromoted가 된 레스토링이 상단으로 올라와야 한다. order를 이용해 내림차순으로 정렬
+      const [restaurants, results] = await this.restaurant.findAndCount({
+        take: 5,
+        skip: (page - 1) * 5,
+        order: { isPromoted: 'DESC' },
+      });
       return { ok: true, restaurants, totalPage: Math.ceil(results / 5), results };
     } catch (error) {
       console.log(error.message);
@@ -175,6 +180,7 @@ export class RestaurantService {
         },
         take: 5,
         skip: (page - 1) * 5,
+        order: { isPromoted: 'DESC' },
       });
 
       return { ok: true, restaurants, results, totalPage: Math.ceil(results / 5) };
